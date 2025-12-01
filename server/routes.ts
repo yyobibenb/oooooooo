@@ -372,6 +372,14 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/health", (_req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: Date.now(),
+      uptime: process.uptime()
+    });
+  });
+
   setTimeout(() => {
     initializeExchanges();
   }, 1000);
