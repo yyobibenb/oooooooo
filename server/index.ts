@@ -3,6 +3,25 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
+function startKeepAlive(port: number) {
+  const PING_INTERVAL = 5 * 60 * 1000;
+  
+  const selfPing = async () => {
+    try {
+      const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
+      const response = await fetch(`${url}/api/health`);
+      if (response.ok) {
+        console.log(`[KeepAlive] Ping successful at ${new Date().toLocaleTimeString()}`);
+      }
+    } catch (error) {
+      console.log(`[KeepAlive] Ping failed:`, error);
+    }
+  };
+
+  setInterval(selfPing, PING_INTERVAL);
+  console.log(`[KeepAlive] Started - pinging every ${PING_INTERVAL / 60000} minutes`);
+}
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -93,6 +112,7 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      startKeepAlive(port);
     },
   );
 })();
